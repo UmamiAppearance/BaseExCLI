@@ -1,14 +1,19 @@
-import { readFileSync as readFile, statSync as stat } from "fs";
-import { BaseEx } from "base-ex";
-import { hideBin } from "yargs/helpers";
-import yargs from "yargs";
+'use strict';
 
+var fs = require('fs');
+var baseEx$1 = require('base-ex');
+var helpers = require('yargs/helpers');
+var yargs = require('yargs');
+
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+
+var yargs__default = /*#__PURE__*/_interopDefaultLegacy(yargs);
 
 // config values
 const VERSION = (() => {
     const conf = JSON.parse(
-        readFile(
-            new URL("./package.json", import.meta.url)
+        fs.readFileSync(
+            new URL("./package.json", (typeof document === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __filename).href : (document.currentScript && document.currentScript.src || new URL('index.cjs', document.baseURI).href)))
         )
     );
     return conf.version;
@@ -50,7 +55,7 @@ const FLAGS = {
     }
 };
 
-const { argv } = yargs(hideBin(process.argv))
+const { argv } = yargs__default["default"](helpers.hideBin(process.argv))
     .version(VERSION)
     .usage("$0 <CONVERTER> [OPTIONS]... [FILE]")
     .command("* <CONVERTER> [FILE]", "", yargs => yargs.options(FLAGS)
@@ -68,14 +73,14 @@ const { argv } = yargs(hideBin(process.argv))
     .example("cat file.txt | $0")
     .example("$0 file.txt")
     .example("cat file.txt | $0 -d")
-    .example("$0 file.txt -d")
+    .example("$0 file.txt -d");
 
 
-const baseEx = new BaseEx("str");
+const baseEx = new baseEx$1.BaseEx("str");
 
 const options = {
     lineWrap: argv.wrap
-}
+};
 const extraArgs = [ options ];
 if ("ignoreGarbage" in argv) extraArgs.push("nointegrity");
 if ("upper" in argv) extraArgs.push("upper");
@@ -85,7 +90,7 @@ const convert = (converter, mode, input) => {
     process.stdout.write(baseEx[converter][mode](input, ...extraArgs));
     process.stdout.write("\n");
     process.exit(0);
-}
+};
 
 if (argv.CONVERTER in baseEx) {
 
@@ -100,13 +105,13 @@ if (argv.CONVERTER in baseEx) {
         options.permissions = "777";
         process.stdin.on("data", input => {
             convert(argv.CONVERTER, mode, input.toString().trim());
-        })
+        });
     }
 
     else {
         let file;
         try { 
-            file = stat(argv.FILE);
+            file = fs.statSync(argv.FILE);
         } catch (err) {
             process.stderr.write(`base-ex: ${argv.FILE}: `);
 
@@ -124,7 +129,7 @@ if (argv.CONVERTER in baseEx) {
         
         let input;
         try {
-            input = readFile(argv.FILE);
+            input = fs.readFileSync(argv.FILE);
         } catch (err) {
             process.stderr.write("base-ex: ");
             process.stderr.write(err);
@@ -145,7 +150,7 @@ if (argv.CONVERTER in baseEx) {
 else {
     process.stderr.write("\nConverters:\n  * ");
     process.stderr.write(Object.keys(baseEx).join("\n  * "));
-    process.stderr.write("\n---------------------\n")
+    process.stderr.write("\n---------------------\n");
     process.stderr.write("Unknown converter. See the options above.\n");
     process.exit(1);
 }

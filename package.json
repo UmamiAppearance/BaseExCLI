@@ -16,7 +16,7 @@
     "cjs": "cjs"
   },
   "scripts": {
-    "build:cjs": "rollup .index.js --file cjs/index.cjs --format cjs",
+    "build:cjs": "rollup ./index.js --file cjs/index.cjs --format cjs",
     "lint": "eslint ./index.js",
     "lint:fix": "eslint ./index.js --fix"
   },
