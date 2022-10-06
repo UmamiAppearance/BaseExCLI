@@ -39,9 +39,9 @@
   "homepage": "https://github.com/UmamiAppearance/BaseExCLI#readme",
   "devDependencies": {
     "eslint": "^8.24.0",
-    "rollup": "^2.79.1",
+    "rollup": "^2.79.1"
   },
-  "Dependencies": {
+  "dependencies": {
     "base-ex": "^0.5.0",
     "yargs": "^17.6.0"
   }

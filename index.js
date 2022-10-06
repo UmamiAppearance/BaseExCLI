@@ -8,7 +8,7 @@ import yargs from "yargs";
 const VERSION = await (async () => {
     const conf = JSON.parse(
         await readFile(
-            new URL("../package.json", import.meta.url)
+            new URL("./package.json", import.meta.url)
         )
     );
     return conf.version;
