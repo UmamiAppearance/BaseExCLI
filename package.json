@@ -2,21 +2,12 @@
   "name": "base-ex-cli",
   "version": "0.1.0",
   "description": "Command Line Interface for BaseEx",
-  "main": "./cjs/index.cjs",
-  "module": "./index.js",
+  "main": "./index.js",
   "bin": {
     "bx": "./index.js"
   },
-  "exports": {
-    "import": "./index.js",
-    "require": "./cjs/index.cjs"
-  },
   "type": "module",
-  "directories": {
-    "cjs": "cjs"
-  },
   "scripts": {
-    "build:cjs": "rollup ./index.js --file cjs/index.cjs --format cjs",
     "lint": "eslint ./index.js",
     "lint:fix": "eslint ./index.js --fix"
   },
@@ -38,8 +29,7 @@
   },
   "homepage": "https://github.com/UmamiAppearance/BaseExCLI#readme",
   "devDependencies": {
-    "eslint": "^8.24.0",
-    "rollup": "^2.79.1"
+    "eslint": "^8.24.0"
   },
   "dependencies": {
     "base-ex": "^0.5.0",
