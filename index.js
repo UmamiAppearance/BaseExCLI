@@ -81,17 +81,34 @@ if ("ignoreGarbage" in argv) extraArgs.push("nointegrity");
 if ("upper" in argv) extraArgs.push("upper");
 if ("lower" in argv) extraArgs.push("lower");
 
-const convert = (converter, mode, input) => {
-    process.stdout.write(baseEx[converter][mode](input, ...extraArgs));
+
+const converters = {};
+for (const c in baseEx) {
+    converters[c.toLocaleLowerCase()] = c;
+}
+
+delete converters.simplebase;
+for (let i=2; i<=62; i++) {
+    converters[`simplebase${i}`] = "simpleBase";
+}
+
+let converterName = converters[argv.CONVERTER.toLocaleLowerCase()];
+
+const sbMatch = argv.CONVERTER.match(/^(simpleBase)([0-9]+)$/i);
+const sBase = (sbMatch) ? `base${sbMatch.at(2)}` : false;
+
+const convert = (converterName, mode, input) => {
+    const converter = (sBase) ? baseEx.simpleBase[sBase] : baseEx[converterName];
+    process.stdout.write(converter[mode](input, ...extraArgs));
     process.stdout.write("\n");
     process.exit(0);
 }
 
-if (argv.CONVERTER in baseEx) {
+if (converterName) {
 
     const mode = ("decode" in argv) ? "decode" : "encode";
 
-    if (argv.CONVERTER === "uuencode" || argv.CONVERTER === "xxencode") {
+    if (converterName === "uuencode" || converterName === "xxencode") {
         extraArgs.push("header");
     }
     
@@ -99,7 +116,7 @@ if (argv.CONVERTER in baseEx) {
         options.file = "/dev/stdin";
         options.permissions = "777";
         process.stdin.on("data", input => {
-            convert(argv.CONVERTER, mode, input.toString().trim());
+            convert(converterName, mode, input.toString().trim());
         })
     }
 
@@ -133,9 +150,9 @@ if (argv.CONVERTER in baseEx) {
         }
 
         if (mode === "decode") {
-            convert(argv.CONVERTER, "decode", input.toString().trim());
+            convert(converterName, "decode", input.toString().trim());
         } else {
-            convert(argv.CONVERTER, "encode", input);
+            convert(converterName, "encode", input);
         }
     }
 
@@ -144,7 +161,7 @@ if (argv.CONVERTER in baseEx) {
 
 else {
     process.stderr.write("\nConverters:\n  * ");
-    process.stderr.write(Object.keys(baseEx).join("\n  * "));
+    process.stderr.write(Object.keys(converters).join("\n  * "));
     process.stderr.write("\n---------------------\n")
     process.stderr.write("Unknown converter. See the options above.\n");
     process.exit(1);
