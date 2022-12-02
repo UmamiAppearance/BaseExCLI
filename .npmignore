@@ -1,0 +1,4 @@
+BaseExCLI.code-workspace
+node_modules
+.vscode/*
+.github

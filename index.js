@@ -70,14 +70,14 @@ const { argv } = yargs(hideBin(process.argv))
     .example("cat plain.txt | $0 base64")
     .example("$0 base32 plain.txt")
     .example("cat encoded.txt | $0 base91 -d")
-    .example("$0 base16 encoded.txt -d")
+    .example("$0 base16 encoded.txt -d");
 
 
 const baseEx = new BaseEx("bytes");
 
 const options = {
     lineWrap: argv.wrap
-}
+};
 const extraArgs = [ options ];
 if ("ignoreGarbage" in argv) extraArgs.push("nointegrity");
 if ("upper" in argv) extraArgs.push("upper");
@@ -104,7 +104,7 @@ const convert = (converterName, mode, input) => {
     process.stdout.write(converter[mode](input, ...extraArgs));
     //if (mode === "encode") process.stderr.write("\n");
     process.exitCode = 0;
-}
+};
 
 if (converterName) {
 
@@ -119,7 +119,7 @@ if (converterName) {
         options.permissions = "777";
         process.stdin.on("data", input => {
             convert(converterName, mode, input);
-        })
+        });
     }
 
     else {
@@ -129,7 +129,7 @@ if (converterName) {
         } catch (err) {
             process.stderr.write(`base-ex: ${argv.FILE}: `);
 
-            if (err.code === 'ENOENT') {
+            if (err.code === "ENOENT") {
                 process.stderr.write("No such file or directory.\n");
             } else {
                 process.stderr.write("Cannot stat file\n");
@@ -164,7 +164,7 @@ if (converterName) {
 else {
     process.stderr.write("\nConverters:\n  * ");
     process.stderr.write(Object.keys(converters).join("\n  * "));
-    process.stderr.write("\n---------------------\n")
+    process.stderr.write("\n---------------------\n");
     process.stderr.write("Unknown converter. See the options above.\n");
     process.exitCode = 1;
 }
