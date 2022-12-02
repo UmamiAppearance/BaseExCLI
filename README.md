@@ -3,3 +3,96 @@
 [![License](https://img.shields.io/github/license/UmamiAppearance/BaseExJs?color=009911&style=for-the-badge)](./LICENSE)
 [![npm](https://img.shields.io/npm/v/base-ex?color=%23009911&style=for-the-badge)](https://www.npmjs.com/package/base-ex)
 
+This is a **CLI** for [BaseExJs](https://github.com/UmamiAppearance/BaseExJS). BaseEx is designed as a library for base conversions for node.js or the browser. There are already a lot of individual CLIs available for, lets say Base32 Base64, etc.  
+Those clients are very good and also fast, while this one is certainly not fast. But it has all the important base converters available, the converter is only an argument and not whole program. So, if speed is not an issue, this might be interesting for you. On top of that, it contains different encoding standards and some more exotic converters (see the list below). 
+
+___
+> :warning: Think twice before using it in production. It still has to stand the test of time.
+___
+
+## Converters/Converter Arguments
+* base1
+* base16
+* base32_crockford
+* base32_rfc3548
+* base32_rfc4648
+* base32_zbase32
+* base58
+* base58_bitcoin
+* base58_flickr
+* base64
+* base64_urlsafe
+* uuencode
+* xxencode
+* base85_adobe
+* base85_ascii
+* base85_z85
+* base91
+* leb128
+* ecoji_v1
+* ecoji_v2
+* base2048
+* basephi
+* byteconverter
+* simplebase2
+* simplebase3
+* simplebase4
+* simplebase5
+* simplebase6
+* simplebase7
+* simplebase8
+* simplebase9
+* simplebase10
+* simplebase11
+* simplebase12
+* simplebase13
+* simplebase14
+* simplebase15
+* simplebase16
+* simplebase17
+* simplebase18
+* simplebase19
+* simplebase20
+* simplebase21
+* simplebase22
+* simplebase23
+* simplebase24
+* simplebase25
+* simplebase26
+* simplebase27
+* simplebase28
+* simplebase29
+* simplebase30
+* simplebase31
+* simplebase32
+* simplebase33
+* simplebase34
+* simplebase35
+* simplebase36
+* simplebase37
+* simplebase38
+* simplebase39
+* simplebase40
+* simplebase41
+* simplebase42
+* simplebase43
+* simplebase44
+* simplebase45
+* simplebase46
+* simplebase47
+* simplebase48
+* simplebase49
+* simplebase50
+* simplebase51
+* simplebase52
+* simplebase53
+* simplebase54
+* simplebase55
+* simplebase56
+* simplebase57
+* simplebase58
+* simplebase59
+* simplebase60
+* simplebase61
+* simplebase62
+

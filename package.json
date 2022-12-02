@@ -4,7 +4,7 @@
   "description": "Command Line Interface for BaseEx",
   "main": "./index.js",
   "bin": {
-    "bx": "./index.js"
+    "bex": "./index.js"
   },
   "type": "module",
   "scripts": {
@@ -29,10 +29,10 @@
   },
   "homepage": "https://github.com/UmamiAppearance/BaseExCLI#readme",
   "devDependencies": {
-    "eslint": "^8.24.0"
+    "eslint": "^8.28.0"
   },
   "dependencies": {
-    "base-ex": "^0.5.0",
-    "yargs": "^17.6.0"
+    "base-ex": "^0.5.1",
+    "yargs": "^17.6.2"
   }
 }

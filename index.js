@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { readFileSync as readFile, statSync as stat } from "fs";
 import { BaseEx } from "base-ex";
 import { hideBin } from "yargs/helpers";
@@ -65,13 +67,13 @@ const { argv } = yargs(hideBin(process.argv))
             type: "string",
         })
     )
-    .example("cat file.txt | $0")
-    .example("$0 file.txt")
-    .example("cat file.txt | $0 -d")
-    .example("$0 file.txt -d")
+    .example("cat plain.txt | $0 base64")
+    .example("$0 base32 plain.txt")
+    .example("cat encoded.txt | $0 base91 -d")
+    .example("$0 base16 encoded.txt -d")
 
 
-const baseEx = new BaseEx("str");
+const baseEx = new BaseEx("bytes");
 
 const options = {
     lineWrap: argv.wrap
@@ -100,8 +102,8 @@ const sBase = (sbMatch) ? `base${sbMatch.at(2)}` : false;
 const convert = (converterName, mode, input) => {
     const converter = (sBase) ? baseEx.simpleBase[sBase] : baseEx[converterName];
     process.stdout.write(converter[mode](input, ...extraArgs));
-    process.stdout.write("\n");
-    process.exit(0);
+    //if (mode === "encode") process.stderr.write("\n");
+    process.exitCode = 0;
 }
 
 if (converterName) {
@@ -116,7 +118,7 @@ if (converterName) {
         options.file = "/dev/stdin";
         options.permissions = "777";
         process.stdin.on("data", input => {
-            convert(converterName, mode, input.toString().trim());
+            convert(converterName, mode, input);
         })
     }
 
@@ -164,5 +166,5 @@ else {
     process.stderr.write(Object.keys(converters).join("\n  * "));
     process.stderr.write("\n---------------------\n")
     process.stderr.write("Unknown converter. See the options above.\n");
-    process.exit(1);
+    process.exitCode = 1;
 }
