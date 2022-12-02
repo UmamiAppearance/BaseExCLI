@@ -7,7 +7,7 @@ This is a **CLI** for [BaseExJs](https://github.com/UmamiAppearance/BaseExJS). B
 Those clients are very good and also fast, while this one is certainly not fast. But it has all the important base converters available, the converter is only an argument and not whole program. So, if speed is not an issue, this might be interesting for you. On top of that, it contains different encoding standards and some more exotic converters (see the list below). 
 
 ___
-> :warning: Think twice before using it in production. It still has to stand the test of time.
+:warning: This program still has to stand the test of time. Be extra attentive when using this in production.
 ___
 
 ## Converters/Converter Arguments
@@ -96,3 +96,31 @@ ___
 * simplebase61
 * simplebase62
 
+
+## Install
+```sh
+npm install --global base-ex-cli
+```
+
+## Usage
+The executable is reachable by calling ``bex``. Pick a converter of your choice from [above](#convertersconverter-arguments) and enjoy your data in your favorite way!  
+  
+**Examples:**
+```sh
+// encoding from stdin
+cat plain.txt | bex base64
+echo "Hello World!" | bex ecoji_v2
+
+// encoding from file
+bex base32 plain.txt
+
+// decoding from stdin
+cat encoded.txt | bex base91 -d
+echo 3432210a | bex base16 -d
+
+// decoding from file
+bex base16 encoded.txt -d
+```
+
+## License
+This work is licensed under [GPL-3.0](https://opensource.org/licenses/GPL-3.0).
