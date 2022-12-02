@@ -7,7 +7,7 @@ This is a **CLI** for [BaseExJs](https://github.com/UmamiAppearance/BaseExJS). B
 Those clients are very good and also fast, while this one is certainly not fast. But it has all the important base converters available, the converter is only an argument and not whole program. So, if speed is not an issue, this might be interesting for you. On top of that, it contains different encoding standards and some more exotic converters (see the list below). 
 
 ___
-:warning: This program still has to stand the test of time. Be extra attentive when using this in production.
+:warning: _This program still has to stand the test of time. Be extra attentive when using this in production._
 ___
 
 ## Converters/Converter Arguments
@@ -109,10 +109,10 @@ The executable is reachable by calling ``bex``. Pick a converter of your choice 
 ```sh
 // encoding from stdin
 cat plain.txt | bex base64
-echo "Hello World!" | bex ecoji_v2
+printf "Hello World!" | bex ecoji_v2
 
 // encoding from file
-bex base32 plain.txt
+bex base32_rfc3548 plain.txt
 
 // decoding from stdin
 cat encoded.txt | bex base91 -d
