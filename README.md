@@ -3,8 +3,8 @@
 [![License](https://img.shields.io/github/license/UmamiAppearance/BaseExCLI?color=009911&style=for-the-badge)](./LICENSE)
 [![npm](https://img.shields.io/npm/v/base-ex-cli?color=%23009911&style=for-the-badge)](https://www.npmjs.com/package/base-ex-cli)
 
-This is a **CLI** for [BaseExJs](https://github.com/UmamiAppearance/BaseExJS). BaseEx is designed as a library for base conversions for node.js or the browser. There are already a lot of individual CLIs available for, lets say Base32 Base64, etc.  
-Those clients are very good and also fast, while this one is certainly not fast. But it has all the important base converters available, the converter is only an argument and not whole program. So, if speed is not an issue, this might be interesting for you. On top of that, it contains different encoding standards and some more exotic converters (see the list below). 
+This is a **CLI** for [BaseEx](https://github.com/UmamiAppearance/BaseExJS). BaseEx is designed as a library for base conversions for node.js or the browser. There are already a lot of individual CLIs available for, lets say Base32, Base64, etc.  
+Those clients are very good and also fast, while this one is certainly not fast. But it has all the important base converters available, the converter is only one argument away and not whole program to search for, installing it, and getting used to it. So, if speed is not an issue, this might be interesting for you. On top of that, it contains different encoding standards and some more exotic converters (see the list below). 
 
 ___
 :warning: _This program still has to stand the test of time. Be extra attentive when using this in production._

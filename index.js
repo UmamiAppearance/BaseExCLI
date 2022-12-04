@@ -102,7 +102,6 @@ const sBase = (sbMatch) ? `base${sbMatch.at(2)}` : false;
 const convert = (converterName, mode, input) => {
     const converter = (sBase) ? baseEx.simpleBase[sBase] : baseEx[converterName];
     process.stdout.write(converter[mode](input, ...extraArgs));
-    //if (mode === "encode") process.stderr.write("\n");
     process.exitCode = 0;
 };
 
@@ -143,7 +142,9 @@ if (converterName) {
         
         let input;
         try {
-            input = readFile(argv.FILE);
+            input = (mode === "encode")
+                ? new Uint8Array(readFile(argv.FILE))
+                : String(readFile(argv.FILE));
         } catch (err) {
             process.stderr.write("base-ex: ");
             process.stderr.write(err);

@@ -10,7 +10,7 @@
   "scripts": {
     "lint": "eslint ./index.js",
     "lint:fix": "eslint ./index.js --fix",
-    "test": "exit 0"
+    "test": "ava"
   },
   "repository": {
     "type": "git",
@@ -30,6 +30,7 @@
   },
   "homepage": "https://github.com/UmamiAppearance/BaseExCLI#readme",
   "devDependencies": {
+    "ava": "^5.1.0",
     "eslint": "^8.28.0"
   },
   "dependencies": {
