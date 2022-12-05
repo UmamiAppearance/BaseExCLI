@@ -86,7 +86,7 @@ if ("lower" in argv) extraArgs.push("lower");
 
 const converters = {};
 for (const c in baseEx) {
-    converters[c.toLocaleLowerCase()] = c;
+    converters[c.toLowerCase()] = c;
 }
 
 delete converters.byteconverter;
@@ -95,7 +95,7 @@ for (let i=2; i<=62; i++) {
     converters[`simplebase${i}`] = "simpleBase";
 }
 
-let converterName = converters[argv.CONVERTER.toLocaleLowerCase()];
+let converterName = converters[argv.CONVERTER.toLowerCase()];
 
 const sbMatch = argv.CONVERTER.match(/^(simpleBase)([0-9]+)$/i);
 const sBase = (sbMatch) ? `base${sbMatch.at(2)}` : false;

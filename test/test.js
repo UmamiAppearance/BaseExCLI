@@ -3,14 +3,8 @@ import { exec } from "child_process";
 import { readFile } from "fs/promises";
 import { promisify } from "util";
 
+// helpers
 const execPromise = promisify(exec);
-
-class DecodingError extends TypeError {
-    constructor(msg) {
-        super(msg);
-        this.name = "DecodingError";
-    }
-}
 
 const randInt = (min, max) => Math.floor(Math.random() * (max - min) + min);
 const randStr = (len) => {
@@ -19,6 +13,33 @@ const randStr = (len) => {
     const str = new TextDecoder("ascii").decode(array);
     return `'${str.replaceAll("'", "\"")}'`;
 };
+
+const baseTest = test.macro(async (t, converter) => {
+    const input = "Hi";
+    const cmd = `echo -n ${input} | ./index.js ${converter} | ./index.js ${converter} -d`;
+    const output = (await execPromise(cmd)).stdout;
+    t.is(input, output);
+});
+
+let CONVERTERS = [];
+try {
+    await execPromise("./index.js base0815");
+} catch(err) {
+    CONVERTERS = err.stderr.match(/(?<=\s\*\s).+/g);
+}
+
+test.serial("Converters are Available", async t => {
+    t.not(CONVERTERS.length, 0);
+});
+
+
+for (const converter of CONVERTERS) {
+    test(
+        `Encode and decode back for ${converter} with input 'Hi'`,
+        baseTest,
+        converter
+    );
+}
 
 
 test("Encoding Base64 from file", async t => {
@@ -69,9 +90,17 @@ test("Line wrapping with random string (256 characters) input (BasE91)", async t
     const encodedW48 = (await execPromise(cmdEnc + " -w 48")).stdout;
     const encodedNoNL = (await execPromise(cmdEnc + " -w 0")).stdout;
     
-    t.is(encodedDefault.split(/\s/).length, 5);
-    t.is(encodedW48.split(/\s/).length, 7);
-    t.is(encodedNoNL.split(/\s/).length, 1);
+    const encodedDefaultArr = encodedDefault.split(/\s/);
+    t.is(encodedDefaultArr.length, 5);
+    t.is(encodedDefaultArr.at(0).length, 76);
+
+    const encodedW48Arr = encodedW48.split(/\s/);  
+    t.is(encodedW48Arr.length, 7);
+    t.is(encodedW48Arr.at(0).length, 48);
+
+    const encodedNoNLArr = encodedNoNL.split(/\s/); 
+    t.is(encodedNoNLArr.length, 1);
+    t.is(encodedNoNLArr.at(0).length, encodedNoNL.length);
 
     const cmdDec = " | ./index.js base91 -d";
     
