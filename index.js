@@ -89,6 +89,7 @@ for (const c in baseEx) {
     converters[c.toLocaleLowerCase()] = c;
 }
 
+delete converters.byteconverter;
 delete converters.simplebase;
 for (let i=2; i<=62; i++) {
     converters[`simplebase${i}`] = "simpleBase";
