@@ -6,12 +6,20 @@ import { promisify } from "util";
 // helpers
 const execPromise = promisify(exec);
 
-const randInt = (min, max) => Math.floor(Math.random() * (max - min) + min);
+const randInt = () => { 
+    let int = Math.floor(Math.random() * 95 + 32);
+    // prohibit single quote sign and backslash
+    if (int === 39 || int === 92) {
+        int = randInt();
+    }
+    return int;
+};
+
 const randStr = (len) => {
     const array = new Uint8Array(len);
-    array.forEach((b, i) => array[i] = randInt(32, 127));
+    array.forEach((b, i) => array[i] = randInt());
     const str = new TextDecoder("ascii").decode(array);
-    return `'${str.replaceAll("'", "\"")}'`;
+    return `'${str}'`;
 };
 
 const baseTest = test.macro(async (t, converter) => {
