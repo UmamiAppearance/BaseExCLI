@@ -1,20 +1,18 @@
 import test from "ava";
-import { fork } from "child_process";
+import { exec } from "child_process";
 import { readFile } from "fs/promises";
+import { promisify } from "util";
 
-const forkPromise = (path, args) => {
-    return new Promise((resolve, reject) => {
-        fork(path, args)
-            .on("data", msg => console.log("MSG", msg))
-            .on("close", stdout => resolve(stdout))
-            .on("error", error => reject(error));
-    });
-};
+const execPromise = promisify(exec);
 
-
-test("test name", async t => {
-    const encoded = await forkPromise("./index.js", ["base64", "./test/fixtures/plain.txt"]);
-    console.log("encoded", encoded);
+test("Encoding Base64", async t => {
+    const encoded = (await execPromise("./index.js base64 ./test/fixtures/plain.txt")).stdout;
     const expected = await readFile("./test/fixtures/b64_enc.txt", "utf8");
     t.is(encoded, expected);
+});
+
+test("Decoding Base64", async t => {
+    const decoded = (await execPromise("./index.js base64 ./test/fixtures/b64_enc.txt -d")).stdout;
+    const expected = await readFile("./test/fixtures/plain.txt", "utf8");
+    t.is(decoded, expected);
 });
