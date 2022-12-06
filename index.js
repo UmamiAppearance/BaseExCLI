@@ -1,5 +1,14 @@
 #!/usr/bin/env node
 
+/**
+ * [BaseExCLI]{@link https://github.com/UmamiAppearance/BaseExCLI}
+ *
+ * @version 0.2.1
+ * @author UmamiAppearance [mail@umamiappearance.eu]
+ * @license GPL-3.0
+ */
+
+
 import { readFileSync as readFile, statSync as stat } from "fs";
 import { BaseEx } from "base-ex";
 import { hideBin } from "yargs/helpers";
@@ -73,8 +82,10 @@ const { argv } = yargs(hideBin(process.argv))
     .example("$0 base16 encoded.txt -d");
 
 
+// initialize BaseEx instance
 const baseEx = new BaseEx("bytes");
 
+// set options
 const options = {
     lineWrap: argv.wrap
 };
@@ -84,6 +95,7 @@ if ("upper" in argv) extraArgs.push("upper");
 if ("lower" in argv) extraArgs.push("lower");
 
 
+// create a converter list
 const converters = {};
 for (const c in baseEx) {
     converters[c.toLowerCase()] = c;
@@ -95,25 +107,32 @@ for (let i=2; i<=62; i++) {
     converters[`simplebase${i}`] = "simpleBase";
 }
 
+
+// select the converter name from the list
 let converterName = converters[argv.CONVERTER.toLowerCase()];
 
+// test for a SimpleBase converter
 const sbMatch = argv.CONVERTER.match(/^(simpleBase)([0-9]+)$/i);
 const sBase = (sbMatch) ? `base${sbMatch.at(2)}` : false;
 
+// create a converter function
 const convert = (converterName, mode, input) => {
     const converter = (sBase) ? baseEx.simpleBase[sBase] : baseEx[converterName];
     process.stdout.write(converter[mode](input, ...extraArgs));
     process.exitCode = 0;
 };
 
+// if a valid converter is set proceed
 if (converterName) {
 
+    // test mode encoding/decoding
     const mode = ("decode" in argv) ? "decode" : "encode";
 
     if (converterName === "uuencode" || converterName === "xxencode") {
         extraArgs.push("header");
     }
     
+    // read from stdin if no file was provided
     if (!argv.FILE || argv.FILE === "-") {
         options.file = "/dev/stdin";
         options.permissions = "777";
@@ -122,6 +141,7 @@ if (converterName) {
         });
     }
 
+    // open the provided file
     else {
         let file;
         try { 
@@ -138,9 +158,11 @@ if (converterName) {
             process.exit(1);
         }
 
+        // set a file value (without path) and permissions
         options.file = argv.FILE.replace(/.*\//, "");
         options.permissions = (file.mode & 0x1ff).toString(8);
         
+        // open the file
         let input;
         try {
             input = (mode === "encode")
@@ -153,16 +175,16 @@ if (converterName) {
             process.exit(2);
         }
 
+        // perform the actual encoding or decoding
         if (mode === "decode") {
             convert(converterName, "decode", input.toString().trim());
         } else {
             convert(converterName, "encode", input);
         }
     }
-
-    
 }
 
+// if no valid converter was provided list all available converters
 else {
     process.stderr.write("\nConverters:\n  * ");
     process.stderr.write(Object.keys(converters).join("\n  * "));

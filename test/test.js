@@ -66,16 +66,13 @@ test("Decoding Base64 from file", async t => {
     t.is(decoded, expected);
 });
 
-
 test("En- and decoding arbitrary bytes (Ecoji 2.0)", async t => {
     const cmd = "./index.js ecoji_v2 ./test/fixtures/bytes.dat | ./index.js ecoji_v2 -d";
     
-    const bytes = new Uint8Array(await readFile("./test/fixtures/plain.txt"));
-    const backDecoded = new TextEncoder().encode(
-        (await execPromise(cmd)).stdout
-    );
-    
-    t.is(bytes.toString, backDecoded.toString);
+    const bytes = await readFile("./test/fixtures/bytes.dat", "utf-8");
+    const backDecoded = (await execPromise(cmd)).stdout;
+
+    t.is(bytes, backDecoded);
 });
 
 
