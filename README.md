@@ -101,6 +101,10 @@ ___
 npm install --global base-ex-cli
 ```
 
+### AUR
+**base-ex-cli** can be installed from the Arch User Repository: [base-ex-cli](https://aur.archlinux.org/packages/base-ex-cli)
+
+
 ## Usage
 The executable is reachable by calling ``bex``. Pick a converter of your choice from [above](#convertersconverter-arguments) and enjoy your data in your favorite way!  
   
