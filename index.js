@@ -3,7 +3,7 @@
 /**
  * [BaseExCLI]{@link https://github.com/UmamiAppearance/BaseExCLI}
  *
- * @version 0.2.4
+ * @version 0.2.5
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -120,6 +120,9 @@ const convert = (converterName, mode, input) => {
     const converter = (sBase) ? baseEx.simpleBase[sBase] : baseEx[converterName];
     process.stdout.write(converter[mode](input, ...extraArgs));
     process.exitCode = 0;
+    if (mode === "encode") {
+        process.stderr.write("\n");
+    }
 };
 
 // if a valid converter is set proceed
