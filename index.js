@@ -3,7 +3,7 @@
 /**
  * [BaseExCLI]{@link https://github.com/UmamiAppearance/BaseExCLI}
  *
- * @version 0.2.6
+ * @version 0.2.5
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -121,7 +121,7 @@ const convert = (converterName, mode, input) => {
     process.stdout.write(converter[mode](input, ...extraArgs));
     process.exitCode = 0;
     if (mode === "encode") {
-        process.stdout.write("\n");
+        process.stderr.write("\n");
     }
 };
 
