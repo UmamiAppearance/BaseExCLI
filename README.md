@@ -126,4 +126,7 @@ bex base16 encoded.txt -d
 ```
 
 ## License
-This work is licensed under [GPL-3.0](https://opensource.org/licenses/GPL-3.0).
+
+[MIT](https://opensource.org/licenses/MIT)
+
+Copyright (c) 2023, UmamiAppearance
