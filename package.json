@@ -1,6 +1,6 @@
 {
   "name": "base-ex-cli",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Command Line Interface for BaseEx",
   "main": "./index.js",
   "bin": {
@@ -34,7 +34,7 @@
     "eslint": "^8.35.0"
   },
   "dependencies": {
-    "base-ex": "^0.7.3",
+    "base-ex": "^0.7.4",
     "yargs": "^17.7.1"
   }
 }
