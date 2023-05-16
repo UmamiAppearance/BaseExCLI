@@ -3,7 +3,7 @@
 /**
  * [BaseExCLI]{@link https://github.com/UmamiAppearance/BaseExCLI}
  *
- * @version 0.3.4
+ * @version 0.3.5
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license MIT
  */
