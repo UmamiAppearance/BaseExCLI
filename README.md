@@ -23,6 +23,7 @@ ___
 * base64
 * base64_urlsafe
 * uuencode
+* uuencode_original
 * xxencode
 * base85_adobe
 * base85_ascii

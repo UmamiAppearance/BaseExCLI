@@ -3,7 +3,7 @@
 /**
  * [BaseExCLI]{@link https://github.com/UmamiAppearance/BaseExCLI}
  *
- * @version 0.3.5
+ * @version 0.3.6
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license MIT
  */
@@ -128,7 +128,8 @@ if (converterName) {
     // test mode encoding/decoding
     const mode = ("decode" in argv) ? "decode" : "encode";
 
-    if (converterName === "uuencode" || converterName === "xxencode") {
+    // tell UUencode-converter to apply the typical header (filename and permissions)
+    if (/^(?:uu|xx)encode/.test(converterName)) {
         extraArgs.push("header");
     }
     
