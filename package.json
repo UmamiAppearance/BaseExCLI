@@ -1,6 +1,6 @@
 {
   "name": "base-ex-cli",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "description": "Command Line Interface for BaseEx",
   "main": "./index.js",
   "bin": {
@@ -30,11 +30,11 @@
   },
   "homepage": "https://github.com/UmamiAppearance/BaseExCLI#readme",
   "devDependencies": {
-    "ava": "^5.2.0",
+    "ava": "^5.3.0",
     "eslint": "^8.41.0"
   },
   "dependencies": {
-    "base-ex": "^0.7.8",
+    "base-ex": "^0.7.9",
     "yargs": "^17.7.2"
   }
 }
