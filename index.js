@@ -115,10 +115,15 @@ let converterName = converters[argv.CONVERTER.toLowerCase()];
 const sbMatch = argv.CONVERTER.match(/^(simpleBase)([0-9]+)$/i);
 const sBase = (sbMatch) ? `base${sbMatch.at(2)}` : false;
 
+
+// get converter
+const getConverter = converterName => sBase ? baseEx.simpleBase[sBase] : baseEx[converterName];
+
 // create a converter function
 const convert = (converterName, mode, input) => {
-    const converter = (sBase) ? baseEx.simpleBase[sBase] : baseEx[converterName];
-    process.stdout.write(converter[mode](input, ...extraArgs));
+    const converter = getConverter(converterName);
+    const output = converter[mode](input, ...extraArgs);
+    process.stdout.write(output);
     process.exitCode = 0;
 };
 
@@ -137,7 +142,31 @@ if (converterName) {
     if (!argv.FILE || argv.FILE === "-") {
         options.file = "/dev/stdin";
         options.permissions = "777";
+
+        const getBS = () => mode === "encode" ? "bsEnc" : "bsDec";
+        const bs = getConverter(converterName).converter[getBS()];
+        let carry = null;
+
         process.stdin.on("data", input => {
+            if (carry) {
+                input = Buffer.concat([carry, input]);
+                carry = null;
+            }
+
+            const bLen = input.length;
+            if (bLen >= 65536) {
+                const end = bLen % bs;
+                if (end) {
+                    carry = Buffer.alloc(end, input.subarray(-end));
+                    input = input.subarray(0, -end);
+                }
+            }
+            
+            if (mode === "encode") {
+                input = new Uint8Array(input);
+            } else {
+                input = input.toString().trim();
+            }
             convert(converterName, mode, input);
         });
     }
