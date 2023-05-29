@@ -122,8 +122,7 @@ const getConverter = converterName => sBase ? baseEx.simpleBase[sBase] : baseEx[
 // create a converter function
 const convert = (converterName, mode, input) => {
     const converter = getConverter(converterName);
-    const output = converter[mode](input, ...extraArgs);
-    process.stdout.write(output);
+    process.stdout.write(converter[mode](input, ...extraArgs));
     process.exitCode = 0;
 };
 
@@ -145,23 +144,53 @@ if (converterName) {
 
         const getBS = () => mode === "encode" ? "bsEnc" : "bsDec";
         const bs = getConverter(converterName).converter[getBS()];
+
+        // collect all data before converting if converter has no fixed block size
+        const noFlush = !bs; 
+        
+        // initialize carry bytes
         let carry = null;
 
+        // stdin event listener
         process.stdin.on("data", input => {
+            let forceBSTest = false;
+
+            // remove all newline characters if mode is "decode"
+            // (otherwise it is impossible to test for bs groups)
+            if (mode === "decode") {
+                input = Buffer.from(
+                    input
+                        .toString()
+                        .replace(/\r?\n|\r/g, "")
+                    , "utf-8"
+                );
+                forceBSTest = true;
+            }
+
+            // join the carried data with the current input
             if (carry) {
                 input = Buffer.concat([carry, input]);
                 carry = null;
             }
 
+            // skip converting and flushing if "noFlush" is true
+            if (noFlush) {
+                carry = input;
+                return;
+            }
+
+            // only convert the amount of bytes, which is divisible by the bs 
+            // (converts without without padding)
             const bLen = input.length;
-            if (bLen >= 65536) {
-                const end = bLen % bs;
-                if (end) {
-                    carry = Buffer.alloc(end, input.subarray(-end));
-                    input = input.subarray(0, -end);
+            if (forceBSTest || bLen >= 65536) {
+                const endIndex = bLen % bs;
+                if (endIndex) {
+                    carry = Buffer.alloc(endIndex, input.subarray(-endIndex));
+                    input = input.subarray(0, -endIndex);
                 }
             }
             
+
             if (mode === "encode") {
                 input = new Uint8Array(input);
             } else {
