@@ -3,7 +3,7 @@
 /**
  * [BaseExCLI]{@link https://github.com/UmamiAppearance/BaseExCLI}
  *
- * @version 0.3.7
+ * @version 0.4.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license MIT
  */
@@ -91,10 +91,10 @@ const baseEx = new BaseEx("bytes");
 const options = {
     lineWrap: argv.wrap
 };
-const extraArgs = [ options ];
-if ("ignoreGarbage" in argv) extraArgs.push("nointegrity");
-if ("upper" in argv) extraArgs.push("upper");
-if ("lower" in argv) extraArgs.push("lower");
+const args = [ options ];
+if ("ignoreGarbage" in argv) args.push("nointegrity");
+if ("upper" in argv) args.push("upper");
+if ("lower" in argv) args.push("lower");
 
 
 // create a converter list
@@ -122,21 +122,25 @@ const sBase = (sbMatch) ? `base${sbMatch.at(2)}` : false;
 const getConverter = converterName => sBase ? baseEx.simpleBase[sBase] : baseEx[converterName];
 
 // create a converter function
-const convert = (converterName, mode, input) => {
+const convert = (converterName, mode, input, ...extraArgs) => {
     const converter = getConverter(converterName);
-    process.stdout.write(converter[mode](input, ...extraArgs));
+    process.stdout.write(converter[mode](input, ...args, ...extraArgs));
     process.exitCode = 0;
 };
 
 // if a valid converter is set proceed
 if (converterName) {
 
+    const convInstance = getConverter(converterName);
+
     // test mode encoding/decoding
     const mode = ("decode" in argv) ? "decode" : "encode";
 
+    let uuencode = false;
     // tell UUencode-converter to apply the typical header (filename and permissions)
     if (/^(?:uu|xx)encode/.test(converterName)) {
-        extraArgs.push("header");
+        args.push("header");
+        uuencode = true;
     }
 
     const noBSWarn = () => {
@@ -149,17 +153,32 @@ if (converterName) {
         options.permissions = "777";
 
         const getBS = () => mode === "encode" ? "bsEnc" : "bsDec";
-        const bs = getConverter(converterName).converter[getBS()];
+        let bs = convInstance.converter[getBS()];
         let carry = null;
+
+        if (uuencode) {
+            if (bs === 3) {
+                bs = 45;
+            } else {
+                bs = 61;
+            }
+
+            console.log("begin /dev/stdin 777");
+        }
+        
 
         // collect all data before converting if converter has no block size
         const noFlush = !bs;
-        if (noFlush) {
-            process.stdin.on("end", () => {
+        process.stdin.on("end", () => {
+            if (noFlush) {
                 if (carry.length > BIG_DATA_VAL) noBSWarn();
                 convert(converterName, mode, carry);
-            });
-        }
+            }
+
+            if (uuencode) {
+                console.log(`${convInstance.charsets[convInstance.version].at(0)}\nend`);
+            }
+        });
         
         // stdin event listener
         process.stdin.on("data", input => {
@@ -198,7 +217,11 @@ if (converterName) {
                 }
             }
             
-            convert(converterName, mode, input);
+            if (uuencode) {
+                convert(converterName, mode, input, "buffering");
+            } else {
+                convert(converterName, mode, input);
+            }
         });
     }
 
