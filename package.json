@@ -1,6 +1,6 @@
 {
   "name": "base-ex-cli",
-  "version": "0.3.7",
+  "version": "0.4.0",
   "description": "Command Line Interface for BaseEx",
   "main": "./index.js",
   "bin": {
