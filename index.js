@@ -140,22 +140,13 @@ if (converterName) {
     }
 
     const noBSWarn = () => {
-        console.warn(`WARNING: The ${converterName}-converter needs to convert the complete input into one big integer. It is not made for big data amounts and might take a long time to process. U should consider to use converter with a fixed block size (Base16, Base32, Base64, ...).`);
+        console.warn(`WARNING: The ${converterName}-converter needs to convert the complete input into one big integer. It is not made for big data amounts and might take a long time to process. You should consider to use converter with a fixed block size (Base16, Base32, Base64, ...).`);
     };
     
     // read from stdin if no file was provided
     if (!argv.FILE || argv.FILE === "-") {
         options.file = "/dev/stdin";
         options.permissions = "777";
-
-        const makeConversion = input => {
-            if (mode === "encode") {
-                input = new Uint8Array(input);
-            } else {
-                input = input.toString().trim();
-            }
-            convert(converterName, mode, input);
-        };
 
         const getBS = () => mode === "encode" ? "bsEnc" : "bsDec";
         const bs = getConverter(converterName).converter[getBS()];
@@ -166,24 +157,22 @@ if (converterName) {
         if (noFlush) {
             process.stdin.on("end", () => {
                 if (carry.length > BIG_DATA_VAL) noBSWarn();
-                makeConversion(carry);
+                convert(converterName, mode, carry);
             });
         }
         
         // stdin event listener
         process.stdin.on("data", input => {
-            let forceBSTest = false;
 
-            // remove all newline characters if mode is "decode"
+            // count all newline characters if mode is "decode"
             // (otherwise it is impossible to test for bs groups)
-            if (mode === "decode") {
-                input = Buffer.from(
-                    input
-                        .toString()
-                        .replace(/\r?\n|\r/g, "")
-                    , "utf-8"
-                );
-                forceBSTest = true;
+            let newLineChars = 0;
+            if (mode === "decode" && !noFlush) {
+                for (const val of input) {
+                    if (val === 0x0a || val === 0x0d) {
+                        newLineChars ++;
+                    } 
+                } 
             }
 
             // join the carried data with the current input
@@ -201,15 +190,15 @@ if (converterName) {
             // only convert the amount of bytes, which is divisible by the bs 
             // (converts without without padding)
             const bLen = input.length;
-            if (forceBSTest || bLen >= 65536) {
-                const endIndex = bLen % bs;
+            if (bLen >= 65536) {
+                const endIndex = (bLen-newLineChars) % bs;
                 if (endIndex) {
                     carry = Buffer.alloc(endIndex, input.subarray(-endIndex));
                     input = input.subarray(0, -endIndex);
                 }
             }
             
-            makeConversion(input);
+            convert(converterName, mode, input);
         });
     }
 
@@ -237,9 +226,7 @@ if (converterName) {
         // open the file
         let input;
         try {
-            input = (mode === "encode")
-                ? new Uint8Array(readFile(argv.FILE))
-                : String(readFile(argv.FILE));
+            input = readFile(argv.FILE);
         } catch (err) {
             process.stderr.write("base-ex: ");
             process.stderr.write(err);
@@ -247,14 +234,8 @@ if (converterName) {
             process.exit(2);
         }
 
-        if (input.length > BIG_DATA_VAL) noBSWarn();
-
         // perform the actual encoding or decoding
-        if (mode === "decode") {
-            convert(converterName, "decode", input.toString().trim());
-        } else {
-            convert(converterName, "encode", input);
-        }
+        convert(converterName, mode, input);
     }
 }
 
