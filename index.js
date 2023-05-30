@@ -25,6 +25,8 @@ const VERSION = (() => {
     return conf.version;
 })();
 
+// used to determine big input amounts
+const BIG_DATA_VAL = 16384;
 
 const coerceLastValue = value => Array.isArray(value) ? value.pop() : value;
 const FLAGS = {
@@ -136,21 +138,38 @@ if (converterName) {
     if (/^(?:uu|xx)encode/.test(converterName)) {
         extraArgs.push("header");
     }
+
+    const noBSWarn = () => {
+        console.warn(`WARNING: The ${converterName}-converter needs to convert the complete input into one big integer. It is not made for big data amounts and might take a long time to process. U should consider to use converter with a fixed block size (Base16, Base32, Base64, ...).`);
+    };
     
     // read from stdin if no file was provided
     if (!argv.FILE || argv.FILE === "-") {
         options.file = "/dev/stdin";
         options.permissions = "777";
 
+        const makeConversion = input => {
+            if (mode === "encode") {
+                input = new Uint8Array(input);
+            } else {
+                input = input.toString().trim();
+            }
+            convert(converterName, mode, input);
+        };
+
         const getBS = () => mode === "encode" ? "bsEnc" : "bsDec";
         const bs = getConverter(converterName).converter[getBS()];
-
-        // collect all data before converting if converter has no fixed block size
-        const noFlush = !bs; 
-        
-        // initialize carry bytes
         let carry = null;
 
+        // collect all data before converting if converter has no block size
+        const noFlush = !bs;
+        if (noFlush) {
+            process.stdin.on("end", () => {
+                if (carry.length > BIG_DATA_VAL) noBSWarn();
+                makeConversion(carry);
+            });
+        }
+        
         // stdin event listener
         process.stdin.on("data", input => {
             let forceBSTest = false;
@@ -190,13 +209,7 @@ if (converterName) {
                 }
             }
             
-
-            if (mode === "encode") {
-                input = new Uint8Array(input);
-            } else {
-                input = input.toString().trim();
-            }
-            convert(converterName, mode, input);
+            makeConversion(input);
         });
     }
 
@@ -233,6 +246,8 @@ if (converterName) {
             process.stderr.write("\n");
             process.exit(2);
         }
+
+        if (input.length > BIG_DATA_VAL) noBSWarn();
 
         // perform the actual encoding or decoding
         if (mode === "decode") {
