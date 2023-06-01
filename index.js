@@ -88,10 +88,8 @@ const { argv } = yargs(hideBin(process.argv))
 const baseEx = new BaseEx("bytes");
 
 // set options
-const options = {
-    lineWrap: argv.wrap
-};
-const args = [ options ];
+const lineWrap = argv.wrap;
+const args = [];
 if ("ignoreGarbage" in argv) args.push("nointegrity");
 if ("upper" in argv) args.push("upper");
 if ("lower" in argv) args.push("lower");
@@ -124,9 +122,10 @@ const getConverter = converterName => sBase ? baseEx.simpleBase[sBase] : baseEx[
 // create a converter function
 const convert = (converterName, mode, input, ...extraArgs) => {
     const converter = getConverter(converterName);
-    process.stdout.write(converter[mode](input, ...args, ...extraArgs));
-    process.exitCode = 0;
+    return converter[mode](input, ...args, ...extraArgs);
 };
+
+
 
 // if a valid converter is set proceed
 if (converterName) {
@@ -144,43 +143,34 @@ if (converterName) {
     }
 
     const noBSWarn = () => {
-        console.warn(`WARNING: The ${converterName}-converter needs to convert the complete input into one big integer. It is not made for big data amounts and might take a long time to process. You should consider to use converter with a fixed block size (Base16, Base32, Base64, ...).`);
+        process.stderr.write(`WARNING: The ${converterName}-converter needs to convert the complete input into one big integer. It is not made for big data amounts and might take a long time to process. You should consider to use converter with a fixed block size (Base16, Base32, Base64, ...).\n`);
     };
     
     // read from stdin if no file was provided
     if (!argv.FILE || argv.FILE === "-") {
-        options.file = "/dev/stdin";
-        options.permissions = "777";
+        const fileName = "/dev/stdin";
+        const permissions = "777";
 
         const getBS = () => mode === "encode" ? "bsEnc" : "bsDec";
         let bs = convInstance.converter[getBS()];
-        let carry = null;
+        let carryIn = null;
+        let carryOut = "";
 
         if (uuencode) {
             if (bs === 3) {
                 bs = 45;
+                process.stdout.write("begin /dev/stdin 777\n");
             } else {
                 bs = 61;
             }
-
-            console.log("begin /dev/stdin 777");
         }
         
 
         // collect all data before converting if converter has no block size
         const noFlush = !bs;
-        process.stdin.on("end", () => {
-            if (noFlush) {
-                if (carry.length > BIG_DATA_VAL) noBSWarn();
-                convert(converterName, mode, carry);
-            }
 
-            if (uuencode) {
-                console.log(`${convInstance.charsets[convInstance.version].at(0)}\nend`);
-            }
-        });
         
-        // stdin event listener
+        // stdin data event listener
         process.stdin.on("data", input => {
 
             // count all newline characters if mode is "decode"
@@ -195,32 +185,80 @@ if (converterName) {
             }
 
             // join the carried data with the current input
-            if (carry) {
-                input = Buffer.concat([carry, input]);
-                carry = null;
+            if (carryIn) {
+                input = Buffer.concat([carryIn, input]);
+                carryIn = null;
             }
 
             // skip converting and flushing if "noFlush" is true
             if (noFlush) {
-                carry = input;
+                carryIn = input;
                 return;
             }
 
             // only convert the amount of bytes, which is divisible by the bs 
-            // (converts without without padding)
             const bLen = input.length;
             if (bLen >= 65536) {
                 const endIndex = (bLen-newLineChars) % bs;
                 if (endIndex) {
-                    carry = Buffer.alloc(endIndex, input.subarray(-endIndex));
+                    carryIn = Buffer.alloc(endIndex, input.subarray(-endIndex));
                     input = input.subarray(0, -endIndex);
                 }
             }
             
+            const options = {
+                file: fileName,
+                lineWrap: 0,
+                permissions
+            };
+
+
             if (uuencode) {
-                convert(converterName, mode, input, "buffering");
-            } else {
-                convert(converterName, mode, input);
+                process.stdout.write(convert(converterName, mode, input, "buffering", options));
+            }
+            
+            else if (mode === "encode") {
+                const output = carryOut + convert(converterName, mode, input, options);
+                carryOut = "";
+                
+                const outArray = output.match(new RegExp(`.{1,${lineWrap}}`, "gu"));
+                
+                if (outArray.at(-1).length < lineWrap) {
+                    carryOut = outArray.pop();
+                }
+                
+                outArray.forEach(line => process.stdout.write(line + "\n"));
+            } 
+
+            else {
+                options.lineWrap = lineWrap;
+                process.stdout.write(convert(converterName, mode, input, options));
+            }
+        });
+
+
+        // handle the remaining data, when input on stdin ends 
+        process.stdin.on("end", () => {
+            if (noFlush) {
+                if (carryIn.length > BIG_DATA_VAL) noBSWarn();
+                const options = {
+                    file: fileName,
+                    lineWrap,
+                    permissions
+                };
+                process.stdout.write(convert(converterName, mode, carryIn, options));
+            }
+
+            if (carryOut) {
+                process.stdout.write(carryOut);
+            }
+
+            if (uuencode && mode === "encode") {
+                process.stdout.write(`${convInstance.charsets[convInstance.version].at(0)}\nend\n`);
+            }
+
+            if (process.stdout.isTTY) {
+                process.stdout.write("\n");
             }
         });
     }
@@ -243,8 +281,8 @@ if (converterName) {
         }
 
         // set a file value (without path) and permissions
-        options.file = argv.FILE.replace(/.*\//, "");
-        options.permissions = (file.mode & 0x1ff).toString(8);
+        const fileName = argv.FILE.replace(/.*\//, "");
+        const permissions = (file.mode & 0x1ff).toString(8);
         
         // open the file
         let input;
@@ -258,7 +296,12 @@ if (converterName) {
         }
 
         // perform the actual encoding or decoding
-        convert(converterName, mode, input);
+        const options = {
+            file: fileName,
+            lineWrap,
+            permissions
+        };
+        process.stdout.write(convert(converterName, mode, input, options));
     }
 }
 
