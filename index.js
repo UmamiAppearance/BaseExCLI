@@ -126,8 +126,7 @@ const convert = (converterName, mode, input, ...extraArgs) => {
 };
 
 
-
-// if a valid converter is set proceed
+// if a valid converter is set -> proceed
 if (converterName) {
 
     const convInstance = getConverter(converterName);
@@ -153,13 +152,11 @@ if (converterName) {
 
         const getBS = () => mode === "encode" ? "bsEnc" : "bsDec";
         let bs = convInstance.converter[getBS()];
-        let carryIn = null;
-        let carryOut = "";
 
         if (uuencode) {
             if (bs === 3) {
                 bs = 45;
-                process.stdout.write("begin /dev/stdin 777\n");
+                process.stdout.write("begin 644 /dev/stdin\n");
             } else {
                 bs = 61;
             }
@@ -169,20 +166,14 @@ if (converterName) {
         // collect all data before converting if converter has no block size
         const noFlush = !bs;
 
-        
-        // stdin data event listener
-        process.stdin.on("data", input => {
+        // queue for the incoming data
+        const dataQueue = [[null, ""]];
 
-            // count all newline characters if mode is "decode"
-            // (otherwise it is impossible to test for bs groups)
-            let newLineChars = 0;
-            if (mode === "decode" && !noFlush) {
-                for (const val of input) {
-                    if (val === 0x0a || val === 0x0d) {
-                        newLineChars ++;
-                    } 
-                } 
-            }
+
+        const processChunk = async input => {
+
+            // wait for previous chunk and get carried data
+            let [ carryIn, carryOut ] = await dataQueue.at(-1);
 
             // join the carried data with the current input
             if (carryIn) {
@@ -193,17 +184,26 @@ if (converterName) {
             // skip converting and flushing if "noFlush" is true
             if (noFlush) {
                 carryIn = input;
-                return;
+                return [ carryIn, "" ];
             }
 
-            // only convert the amount of bytes, which is divisible by the bs 
-            const bLen = input.length;
-            if (bLen >= 65536) {
-                const endIndex = (bLen-newLineChars) % bs;
-                if (endIndex) {
-                    carryIn = Buffer.alloc(endIndex, input.subarray(-endIndex));
-                    input = input.subarray(0, -endIndex);
+            // remove all newline characters if mode is "decode"
+            // (otherwise it is impossible problematic to test for bs groups)
+            if (mode === "decode" && !uuencode) {
+                const cleanInput = [];
+                for (const val of input) {
+                    if (!(val === 0x0a || val === 0x0d)) {
+                        cleanInput.push(val);
+                    }
                 }
+                input = Buffer.from(cleanInput);
+            }
+            
+            // only convert the amount of bytes, which is divisible by the bs 
+            const endIndex = input.length % bs;
+            if (endIndex) {
+                carryIn = Buffer.alloc(endIndex, input.subarray(-endIndex));
+                input = input.subarray(0, -endIndex);
             }
             
             const options = {
@@ -221,35 +221,51 @@ if (converterName) {
                 const output = carryOut + convert(converterName, mode, input, options);
                 carryOut = "";
                 
-                const outArray = output.match(new RegExp(`.{1,${lineWrap}}`, "gu"));
-                
-                if (outArray.at(-1).length < lineWrap) {
-                    carryOut = outArray.pop();
+                if (lineWrap) {
+                    const outArray = output.match(new RegExp(`.{1,${lineWrap}}`, "gu"));
+                    
+                    if (outArray.at(-1).length < lineWrap) {
+                        carryOut = outArray.pop();
+                    }
+                    
+                    process.stdout.write(outArray.join("\n") + "\n");
                 }
-                
-                outArray.forEach(line => process.stdout.write(line + "\n"));
+
+                else {
+                    process.stdout.write(output);
+                }
             } 
 
             else {
-                options.lineWrap = lineWrap;
                 process.stdout.write(convert(converterName, mode, input, options));
             }
-        });
+
+            return [carryIn, carryOut];
+        };
 
 
-        // handle the remaining data, when input on stdin ends 
-        process.stdin.on("end", () => {
-            if (noFlush) {
-                if (carryIn.length > BIG_DATA_VAL) noBSWarn();
+        const endDataProcessing = async () => {
+
+            let [carryIn, carryOut] = await dataQueue.at(-1);
+
+            if (carryIn) {
+                
+                if (noFlush && carryIn.length > BIG_DATA_VAL) noBSWarn();
+                
                 const options = {
                     file: fileName,
                     lineWrap,
                     permissions
                 };
-                process.stdout.write(convert(converterName, mode, carryIn, options));
+                
+                const extraArgs = [ options ];
+                if (uuencode) {
+                    extraArgs.push("buffering");
+                }
+                process.stdout.write(convert(converterName, mode, carryIn, ...extraArgs));
             }
 
-            if (carryOut) {
+            else if (carryOut) {
                 process.stdout.write(carryOut);
             }
 
@@ -257,10 +273,15 @@ if (converterName) {
                 process.stdout.write(`${convInstance.charsets[convInstance.version].at(0)}\nend\n`);
             }
 
-            if (process.stdout.isTTY) {
-                process.stdout.write("\n");
-            }
-        });
+        };
+
+
+        // stdin data event listener
+        process.stdin.on("data", input => { dataQueue.push(processChunk(input)); });
+
+
+        // handle the remaining data, when input on stdin ends 
+        process.stdin.on("end", endDataProcessing);
     }
 
     // open the provided file
@@ -313,3 +334,4 @@ else {
     process.stderr.write("Unknown converter. See the options above.\n");
     process.exitCode = 1;
 }
+
