@@ -195,9 +195,10 @@ if (converterName) {
             // to work correctly)
             
             if (mode === "decode") {
+                
                 // for uuencode, always carry the last line
-                // which ensures a complete line
-
+                // which ensures a complete line of 60 encoded
+                // characters
                 if (uuencode) {
                     endIndex = input
                         .toString()
@@ -208,7 +209,6 @@ if (converterName) {
 
                 // for any other converter remove newline characters
                 // and carry any byte, which isn't devisable by the bs
-
                 else {
                     const cleanInput = [];
                     for (const val of input) {
@@ -248,10 +248,12 @@ if (converterName) {
                 
                 if (lineWrap) {
                     const outArray = output.match(new RegExp(`.{1,${lineWrap}}`, "gu"));
-                    
-                    if (outArray.at(-1).length < lineWrap) {
-                        carryOut = outArray.pop();
-                    }
+
+                    // carry the last line as it most likely is not
+                    // matching the line wrap (testing the length is
+                    // not always reliable due to the fact that unicode
+                    // characters differ in bytelength)
+                    carryOut = outArray.pop();
                     
                     process.stdout.write(outArray.join("\n") + "\n");
                 }
