@@ -187,25 +187,50 @@ if (converterName) {
                 return [ carryIn, "" ];
             }
 
-            // remove all newline characters if mode is "decode"
-            // (otherwise it is impossible problematic to test for bs groups)
-            if (mode === "decode" && !uuencode) {
-                const cleanInput = [];
-                for (const val of input) {
-                    if (!(val === 0x0a || val === 0x0d)) {
-                        cleanInput.push(val);
-                    }
+
+            let endIndex;
+
+            // ensure complete byte groups according
+            // to the bs (decoding needs some twists
+            // to work correctly)
+            
+            if (mode === "decode") {
+                // for uuencode, always carry the last line
+                // which ensures a complete line
+
+                if (uuencode) {
+                    endIndex = input
+                        .toString()
+                        .split(/\r?\n/)
+                        .at(-1)
+                        .length;
                 }
-                input = Buffer.from(cleanInput);
+
+                // for any other converter remove newline characters
+                // and carry any byte, which isn't devisable by the bs
+
+                else {
+                    const cleanInput = [];
+                    for (const val of input) {
+                        if (!(val === 0x0a || val === 0x0d)) {
+                            cleanInput.push(val);
+                        }
+                    }
+                    input = Buffer.from(cleanInput);
+                    endIndex = input.length % bs;
+                }
+            }
+            
+            else {
+                endIndex = input.length % bs;
             }
             
             // only convert the amount of bytes, which is divisible by the bs 
-            const endIndex = input.length % bs;
             if (endIndex) {
                 carryIn = Buffer.alloc(endIndex, input.subarray(-endIndex));
                 input = input.subarray(0, -endIndex);
             }
-            
+
             const options = {
                 file: fileName,
                 lineWrap: 0,
@@ -240,7 +265,7 @@ if (converterName) {
                 process.stdout.write(convert(converterName, mode, input, options));
             }
 
-            return [carryIn, carryOut];
+            return [ carryIn, carryOut ];
         };
 
 
@@ -248,8 +273,11 @@ if (converterName) {
 
             let [carryIn, carryOut] = await dataQueue.at(-1);
 
+            if (carryOut) {
+                process.stdout.write(carryOut);
+            }
+
             if (carryIn) {
-                
                 if (noFlush && carryIn.length > BIG_DATA_VAL) noBSWarn();
                 
                 const options = {
@@ -263,10 +291,6 @@ if (converterName) {
                     extraArgs.push("buffering");
                 }
                 process.stdout.write(convert(converterName, mode, carryIn, ...extraArgs));
-            }
-
-            else if (carryOut) {
-                process.stdout.write(carryOut);
             }
 
             if (uuencode && mode === "encode") {
