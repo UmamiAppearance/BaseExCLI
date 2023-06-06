@@ -147,13 +147,19 @@ if (converterName) {
     }
 
     const noBSWarn = () => {
-        process.stderr.write(`WARNING: The ${converterName}-converter needs to convert the complete input into one big integer. It is not made for big data amounts and might take a long time to process. You should consider to use converter with a fixed block size (Base16, Base32, Base64, ...).\n`);
+        if (converterName !== "base91") {
+            process.stderr.write(`WARNING: The ${converterName}-converter needs to convert the complete input into one big integer. It is not made for big data amounts and might take a long time to process. You should consider to use converter with a fixed block size (Base16, Base32, Base64, ...).\n`);
+        }
     };
     
     // read from stdin if no file was provided
     if (!argv.FILE || argv.FILE === "-") {
         const fileName = "/dev/stdin";
         const permissions = "777";
+
+        if (converterName === "base91") {
+            console.warn("WARNING: This Base91 converter does not support buffering properly. All data gets collected before conversion to get correct results.");
+        }
 
         const getBS = () => mode === "encode" ? "bsEnc" : "bsDec";
         let bs = convInstance.converter[getBS()];
