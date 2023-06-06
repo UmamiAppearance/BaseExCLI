@@ -217,7 +217,25 @@ if (converterName) {
                         }
                     }
                     input = Buffer.from(cleanInput);
-                    endIndex = input.length % bs;
+
+                    if (converterName === "ecoji_v2") {
+
+                        // get the individual utf-8 chars
+                        const utf8Array = [...input.toString()];
+
+                        // get the maximum amount of chars according to the bs
+                        // (ignore the last char in any case, as it might be split
+                        // on byte level)
+                        const endIndexUtf8 = ((utf8Array.length-1) % bs) + 1;
+
+                        // calculate the endIndex
+                        const inputLen = Buffer.from(utf8Array.slice(0, -endIndexUtf8).join(""), "utf-8").byteLength;
+                        endIndex = input.byteLength - inputLen;
+                    } 
+
+                    else {
+                        endIndex = input.length % bs;
+                    }
                 }
             }
             
