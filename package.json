@@ -31,10 +31,10 @@
   "homepage": "https://github.com/UmamiAppearance/BaseExCLI#readme",
   "devDependencies": {
     "ava": "^5.3.0",
-    "eslint": "^8.41.0"
+    "eslint": "^8.42.0"
   },
   "dependencies": {
-    "base-ex": "^0.7.9",
+    "base-ex": "^0.8.0",
     "yargs": "^17.7.2"
   }
 }
