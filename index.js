@@ -158,13 +158,35 @@ if (converterName) {
         const permissions = "777";
 
         if (converterName === "base91") {
-            console.warn("WARNING: This Base91 converter does not support buffering properly. All data gets collected before conversion to get correct results.");
+            process.stderr.write("WARNING: This Base91 converter does not support buffering properly. All data gets collected before conversion to get correct results.\n");
         }
 
         const getBS = () => mode === "encode" ? "bsEnc" : "bsDec";
         let bs = convInstance.converter[getBS()];
 
-        if (uuencode) {
+
+
+        // collect all data before converting if converter has no block size
+        const noFlush = !bs;
+
+        // queue for the incoming data
+        const dataQueue = [[null, ""]];
+
+        let replacer = false;
+        let adobe = false;
+
+        if (converterName.match(/adobe|ascii85/)) {
+            replacer = true;
+            if (converterName === "base85_adobe") {
+                dataQueue[0][1] = "<~";
+                if (mode === "encode") {
+                    converterName = "base85_ascii";
+                }
+                adobe = true;
+            }
+        }
+        
+        else if (uuencode) {
             if (bs === 3) {
                 bs = 45;
                 process.stdout.write("begin 644 /dev/stdin\n");
@@ -172,13 +194,6 @@ if (converterName) {
                 bs = 61;
             }
         }
-        
-
-        // collect all data before converting if converter has no block size
-        const noFlush = !bs;
-
-        // queue for the incoming data
-        const dataQueue = [[null, ""]];
 
 
         const processChunk = async input => {
@@ -222,11 +237,34 @@ if (converterName) {
                 // and carry any byte, which isn't devisable by the bs
                 else {
                     const cleanInput = [];
-                    for (const val of input) {
-                        if (!(val === 0x0a || val === 0x0d)) {
-                            cleanInput.push(val);
+                    
+                    if (replacer) {
+                        let skipNext = false;
+                        for (const val of input) {
+                            if (skipNext) {
+                                skipNext = false;
+                            } else if (val === 0x7a) {
+                                cleanInput.push(0x21, 0x21, 0x21, 0x21, 0x21);
+                            } else if (val === 0x7e) {
+                                if (cleanInput.at(-1) === 0x3c) {
+                                    cleanInput.pop();
+                                } else {
+                                    skipNext = true;
+                                }                                
+                            } else if (!(val === 0x0a || val === 0x0d)) {
+                                cleanInput.push(val);
+                            }
+                        }
+                    } 
+                    
+                    else {
+                        for (const val of input) {
+                            if (!(val === 0x0a || val === 0x0d)) {
+                                cleanInput.push(val);
+                            }
                         }
                     }
+
                     input = Buffer.from(cleanInput);
 
                     if (nonASCII) {
@@ -242,7 +280,7 @@ if (converterName) {
                         // calculate the endIndex
                         const inputLen = Buffer.from(utf8Array.slice(0, -endIndexUtf8).join(""), "utf-8").byteLength;
                         endIndex = input.byteLength - inputLen;
-                    } 
+                    }
 
                     else {
                         endIndex = input.length % bs;
@@ -326,6 +364,8 @@ if (converterName) {
 
             if (uuencode && mode === "encode") {
                 process.stdout.write(`${convInstance.charsets[convInstance.version].at(0)}\nend\n`);
+            } else if (adobe) {
+                process.stdout.write("~>");
             }
 
         };
