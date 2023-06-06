@@ -133,6 +133,11 @@ if (converterName) {
 
     // test mode encoding/decoding
     const mode = ("decode" in argv) ? "decode" : "encode";
+    if (converterName === "ecoji_v1" && mode === "decode") {
+        converterName = "ecoji_v2";
+    }
+
+    const nonASCII = convInstance.nonASCII;
 
     let uuencode = false;
     // tell UUencode-converter to apply the typical header (filename and permissions)
@@ -218,7 +223,7 @@ if (converterName) {
                     }
                     input = Buffer.from(cleanInput);
 
-                    if (converterName === "ecoji_v2") {
+                    if (nonASCII) {
 
                         // get the individual utf-8 chars
                         const utf8Array = [...input.toString()];
