@@ -20,7 +20,8 @@
     "CLI",
     "Command Line Interface",
     "BaseEx",
-    "base-ex"
+    "base-ex",
+    "base conversion"
   ],
   "author": "UmamiAppearance",
   "license": "MIT",
