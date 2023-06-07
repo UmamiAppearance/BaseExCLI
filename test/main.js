@@ -15,7 +15,7 @@ const randInt = () => {
     return int;
 };
 
-const randStr = (len) => {
+const randStr = len => {
     const array = new Uint8Array(len);
     array.forEach((b, i) => array[i] = randInt());
     const str = new TextDecoder("ascii").decode(array);
@@ -42,7 +42,7 @@ test.serial("Converters are Available", async t => {
 
 
 for (const converter of CONVERTERS) {
-    test(
+    test.serial(
         `Encode and decode back for ${converter} with input 'Hi'`,
         baseTest,
         converter
