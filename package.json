@@ -1,6 +1,6 @@
 {
   "name": "base-ex-cli",
-  "version": "0.3.6",
+  "version": "0.4.0",
   "description": "Command Line Interface for BaseEx",
   "main": "./index.js",
   "bin": {
@@ -10,7 +10,7 @@
   "scripts": {
     "lint": "eslint ./index.js",
     "lint:fix": "eslint ./index.js --fix",
-    "test": "ava -s"
+    "test": "ava"
   },
   "repository": {
     "type": "git",
@@ -20,7 +20,8 @@
     "CLI",
     "Command Line Interface",
     "BaseEx",
-    "base-ex"
+    "base-ex",
+    "base conversion"
   ],
   "author": "UmamiAppearance",
   "license": "MIT",
@@ -30,11 +31,12 @@
   },
   "homepage": "https://github.com/UmamiAppearance/BaseExCLI#readme",
   "devDependencies": {
-    "ava": "^5.2.0",
-    "eslint": "^8.41.0"
+    "ava": "^5.3.0",
+    "eslint": "^8.42.0",
+    "tmp": "^0.2.1"
   },
   "dependencies": {
-    "base-ex": "^0.7.8",
+    "base-ex": "^0.8.0",
     "yargs": "^17.7.2"
   }
 }

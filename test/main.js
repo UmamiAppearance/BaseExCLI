@@ -15,7 +15,7 @@ const randInt = () => {
     return int;
 };
 
-const randStr = (len) => {
+const randStr = len => {
     const array = new Uint8Array(len);
     array.forEach((b, i) => array[i] = randInt());
     const str = new TextDecoder("ascii").decode(array);
@@ -42,7 +42,7 @@ test.serial("Converters are Available", async t => {
 
 
 for (const converter of CONVERTERS) {
-    test(
+    test.serial(
         `Encode and decode back for ${converter} with input 'Hi'`,
         baseTest,
         converter
@@ -96,16 +96,16 @@ test("Line wrapping with random string (256 characters) input (BasE91)", async t
     const encodedNoNL = (await execPromise(cmdEnc + " -w 0")).stdout;
     
     const encodedDefaultArr = encodedDefault.split(/\s/);
-    t.is(encodedDefaultArr.length, 5);
+    t.is(encodedDefaultArr.length, 6);
     t.is(encodedDefaultArr.at(0).length, 76);
 
     const encodedW48Arr = encodedW48.split(/\s/);  
-    t.is(encodedW48Arr.length, 7);
+    t.is(encodedW48Arr.length, 8);
     t.is(encodedW48Arr.at(0).length, 48);
 
     const encodedNoNLArr = encodedNoNL.split(/\s/); 
-    t.is(encodedNoNLArr.length, 1);
-    t.is(encodedNoNLArr.at(0).length, encodedNoNL.length);
+    t.is(encodedNoNLArr.length, 2);
+    t.is(encodedNoNLArr.at(0).length, encodedNoNL.length-1);
 
     const cmdDec = " | ./index.js base91 -d";
     
