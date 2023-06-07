@@ -13,10 +13,12 @@ import { readFileSync as readFile, statSync as stat } from "fs";
 import { BaseEx } from "base-ex";
 import { hideBin } from "yargs/helpers";
 import yargs from "yargs";
+import { EOL } from "os";
 
 
 // config values
 const VERSION = (() => {
+
     const conf = JSON.parse(
         readFile(
             new URL("./package.json", import.meta.url)
@@ -129,10 +131,10 @@ const convert = (converterName, mode, input, ...extraArgs) => {
 // if no valid converter was provided list all
 // available converters and exit 
 if (!converterName) {
-    process.stderr.write("\nConverters:\n  * ");
-    process.stderr.write(Object.keys(converters).join("\n  * "));
-    process.stderr.write("\n---------------------\n");
-    process.stderr.write("Unknown converter. See the options above.\n");
+    process.stderr.write(`${EOL}Converters:${EOL}  * `);
+    process.stderr.write(Object.keys(converters).join(`${EOL}  * `));
+    process.stderr.write(`${EOL}---------------------${EOL}`);
+    process.stderr.write(`Unknown converter. See the options above.${EOL}`);
     process.exit(1);
 }
 
@@ -156,7 +158,7 @@ if (/^(?:uu|xx)encode/.test(converterName)) {
 
 const noBSWarn = () => {
     if (converterName !== "base91") {
-        process.stderr.write(`WARNING: The ${converterName}-converter needs to convert the complete input into one big integer. It is not made for big data amounts and might take a long time to process. You should consider to use converter with a fixed block size (Base16, Base32, Base64, ...).\n`);
+        process.stderr.write(`WARNING: The ${converterName}-converter needs to convert the complete input into one big integer. It is not made for big data amounts and might take a long time to process. You should consider to use converter with a fixed block size (Base16, Base32, Base64, ...).${EOL}`);
     }
 };
 
@@ -195,14 +197,14 @@ if (!argv.FILE || argv.FILE === "-") {
     else if (uuencode) {
         if (bs === 3) {
             bs = 45;
-            process.stdout.write(`begin ${permissions} ${fileName}\n`);
+            process.stdout.write(`begin ${permissions} ${fileName}${EOL}`);
         } else {
             bs = 61;
         }
     }
 
     else if (converterName === "base91") {
-        process.stderr.write("WARNING: This Base91 converter does not support buffering properly. All data gets collected before conversion to get correct results.\n");
+        process.stderr.write(`WARNING: This Base91 converter does not support buffering properly. All data gets collected before conversion to get correct results.${EOL}`);
     }
 
 
@@ -356,9 +358,9 @@ if (!argv.FILE || argv.FILE === "-") {
                         carryOut = outArray.pop();
                     }
 
-                    process.stdout.write(outArray.join("\n"));
+                    process.stdout.write(outArray.join(EOL));
                     if (outArray.at(-1).length === lineWrap) {
-                        process.stdout.write("\n");
+                        process.stdout.write(EOL);
                     }
                 }
             }
@@ -405,11 +407,11 @@ if (!argv.FILE || argv.FILE === "-") {
 
         if (mode === "encode") {
             if (uuencode) {
-                process.stdout.write(`${convInstance.charsets[convInstance.version].at(0)}\nend\n`);
+                process.stdout.write(`${convInstance.charsets[convInstance.version].at(0)}${EOL}end${EOL}`);
             } else if (adobe) {
                 process.stdout.write("~>");
             } else if (converterName !== "leb128") {
-                process.stdout.write("\n");
+                process.stdout.write(EOL);
             }
         }
     };
@@ -431,9 +433,9 @@ else {
         process.stderr.write(`base-ex: ${argv.FILE}: `);
 
         if (err.code === "ENOENT") {
-            process.stderr.write("No such file or directory.\n");
+            process.stderr.write(`No such file or directory.${EOL}`);
         } else {
-            process.stderr.write("Cannot stat file\n");
+            process.stderr.write(`Cannot stat file${EOL}`);
         }
 
         process.exit(1);
@@ -450,7 +452,7 @@ else {
     } catch (err) {
         process.stderr.write("base-ex: ");
         process.stderr.write(err);
-        process.stderr.write("\n");
+        process.stderr.write(EOL);
         process.exit(2);
     }
 
