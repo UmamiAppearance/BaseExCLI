@@ -350,9 +350,17 @@ if (!argv.FILE || argv.FILE === "-") {
                 // matching the line wrap (testing the length is
                 // not always reliable due to the fact that unicode
                 // characters differ in bytelength)
-                carryOut = outArray.pop();
-                
-                process.stdout.write(outArray.join("\n") + "\n");
+
+                if (outArray) {
+                    if (outArray.length > 1) {
+                        carryOut = outArray.pop();
+                    }
+
+                    process.stdout.write(outArray.join("\n"));
+                    if (outArray.at(-1).length === lineWrap) {
+                        process.stdout.write("\n");
+                    }
+                }
             }
 
             else {
@@ -400,6 +408,8 @@ if (!argv.FILE || argv.FILE === "-") {
                 process.stdout.write(`${convInstance.charsets[convInstance.version].at(0)}\nend\n`);
             } else if (adobe) {
                 process.stdout.write("~>");
+            } else if (converterName !== "leb128") {
+                process.stdout.write("\n");
             }
         }
     };

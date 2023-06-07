@@ -96,16 +96,16 @@ test("Line wrapping with random string (256 characters) input (BasE91)", async t
     const encodedNoNL = (await execPromise(cmdEnc + " -w 0")).stdout;
     
     const encodedDefaultArr = encodedDefault.split(/\s/);
-    t.is(encodedDefaultArr.length, 5);
+    t.is(encodedDefaultArr.length, 6);
     t.is(encodedDefaultArr.at(0).length, 76);
 
     const encodedW48Arr = encodedW48.split(/\s/);  
-    t.is(encodedW48Arr.length, 7);
+    t.is(encodedW48Arr.length, 8);
     t.is(encodedW48Arr.at(0).length, 48);
 
     const encodedNoNLArr = encodedNoNL.split(/\s/); 
-    t.is(encodedNoNLArr.length, 1);
-    t.is(encodedNoNLArr.at(0).length, encodedNoNL.length);
+    t.is(encodedNoNLArr.length, 2);
+    t.is(encodedNoNLArr.at(0).length, encodedNoNL.length-1);
 
     const cmdDec = " | ./index.js base91 -d";
     
