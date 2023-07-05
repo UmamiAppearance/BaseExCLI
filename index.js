@@ -3,7 +3,7 @@
 /**
  * [BaseExCLI]{@link https://github.com/UmamiAppearance/BaseExCLI}
  *
- * @version 0.4.0
+ * @version 0.4.1
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license MIT
  */
@@ -211,7 +211,9 @@ if (!argv.FILE || argv.FILE === "-") {
     // CONVERSION FUNCTIONS 
     // BUFFERED
 
-    // called every time node flushes 2^16 input bytes 
+    let reachedEOL = false;
+
+    // called every time node flushes up to 2^16 input bytes 
     const processChunk = async input => {
 
         // wait for previous chunk and get carried data
@@ -354,13 +356,16 @@ if (!argv.FILE || argv.FILE === "-") {
                 // characters differ in bytelength)
 
                 if (outArray) {
+
+                    reachedEOL = false;
+
                     if (outArray.length > 1) {
                         carryOut = outArray.pop();
                     }
-
                     process.stdout.write(outArray.join(EOL));
                     if (outArray.at(-1).length === lineWrap) {
                         process.stdout.write(EOL);
+                        reachedEOL = true;
                     }
                 }
             }
@@ -387,9 +392,16 @@ if (!argv.FILE || argv.FILE === "-") {
 
         if (carryOut) {
             process.stdout.write(carryOut);
+            if (carryOut.length === lineWrap) {
+                process.stdout.write(EOL);
+                reachedEOL = true;
+            } else {
+                reachedEOL = false;
+            }
         }
 
         if (carryIn) {
+            reachedEOL = false;
             if (noFlush && carryIn.length > BIG_DATA_VAL) noBSWarn();
             
             const options = {
@@ -410,7 +422,7 @@ if (!argv.FILE || argv.FILE === "-") {
                 process.stdout.write(`${convInstance.charsets[convInstance.version].at(0)}${EOL}end${EOL}`);
             } else if (adobe) {
                 process.stdout.write("~>");
-            } else if (converterName !== "leb128") {
+            } else if (converterName !== "leb128" && !reachedEOL) {
                 process.stdout.write(EOL);
             }
         }
